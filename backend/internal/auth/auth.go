@@ -21,6 +21,7 @@ func Register (c *gin.Context) {
 			"data": "",
 			"error": "unexpected error",
 		})
+		return
 	}
 
 	if ex, err := user.QueryUserBool(userStruct.Username); err != nil {
@@ -28,33 +29,49 @@ func Register (c *gin.Context) {
 			"data": "",
 			"error": "unexpected error",
 		})
+		return
 	} else if ex {
 		c.JSON(http.StatusConflict, gin.H{
 			"data": "",
 			"error": "user already exists",
 		})
+		return
 	}
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(userStruct.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(500, gin.H{"data": "", "error": "unexpected error"})
+		return
 	}
 
-	userId, err := user.CreateUser(userStruct.Username, string(hashed))
+	_, err = user.CreateUser(userStruct.Username, string(hashed))
 	if err != nil {
 		c.JSON(500, gin.H{"data": "", "error": "unexpected error"})
+		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"userId": userId,
+	tokenStr, err := SignToken(userStruct.Username)
+	if err != nil {
+    c.JSON(500, gin.H{"data": "", "error": "unexpected error"})
+    return
+}
+
+	c.SetCookie("token", tokenStr, 3600 * 24 * 30, "/", "localhost", false, true)
+	c.JSON(http.StatusOK, gin.H{
+		"data": "login successful",
+		"error": "",
 	})
 }
 
-func SignToken(username string, password string, hashedPassword string) (string, error) {
-	err := bcrypt.CompareHashAndPassword([]byte(password), []byte(hashedPassword))
+func comparePassword(password string, hashedPassword string) error {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
-		return "", err
+		return err
 	}
+	return nil
+}
+
+func SignToken(username string) (string, error) {
 
 	claims:= &jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * 30 * time.Hour)),
@@ -72,10 +89,41 @@ func SignToken(username string, password string, hashedPassword string) (string,
 }
 
 func Login(c *gin.Context) {
-	var user = user.User{}
-	if err:=c.ShouldBindJSON(&user); err != nil {
+	var userStruct = user.User{}
+	if err:=c.ShouldBindJSON(&userStruct); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "unexpected error",
+			"data": "",
+			"error": "unexpected error",
 		})
+		return
 	}
+	queriedUser, err := user.QueryUser(userStruct.Username)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"data": "",
+			"error": "unexpected error",
+		})	
+		return
+	}
+	if err := comparePassword(userStruct.Password, queriedUser.Password); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"data": "",
+			"error": "invalid password",
+		})
+		return
+	}
+	tokenStr, err := SignToken(userStruct.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"data": "",
+			"error": "unexpected error",
+		})
+		return
+	}
+	c.SetCookie("token", tokenStr, 3600 * 24 * 30, "/", "localhost", false, true)
+	c.JSON(http.StatusOK, gin.H{
+		"data": "login successful",
+		"error": "",
+	})
+	return
 }

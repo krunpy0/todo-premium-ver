@@ -17,14 +17,23 @@ func QueryUserBool(username string) (bool, error) {
 	}
 }
 
-func CreateUser(username string, hashedPassword string ) (int, error) {
+func QueryUser(username string) (User, error) {
+	var user = User{}
+	err := db.DB.QueryRow(`SELECT (username, password) FROM users WHERE username=$1)`, username).Scan(&user)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+func CreateUser(username string, hashedPassword string ) (User, error) {
+	var user = User{}
 	query := `
 	INSERT INTO users (username, password)
-	VALUES ($1, $2) RETURNING id
+	VALUES ($1, $2) RETURNING username, password
 	`
-	var id int
-	err := db.DB.QueryRow(query, username, hashedPassword).Scan(id); if err != nil {
-		return 0, err
+	err := db.DB.QueryRow(query, username, hashedPassword).Scan(&user); if err != nil {
+		return User{}, err
 	}
-	return id, nil
+	return user, nil
 }
