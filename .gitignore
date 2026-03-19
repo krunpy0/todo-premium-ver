@@ -30,3 +30,12 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# ========================
+# React / Node
+# ========================
+node_modules/
+.next/
+out/
+build/
+dist/
