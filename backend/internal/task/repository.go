@@ -1,6 +1,8 @@
 package task
 
 import (
+	"time"
+
 	db "github.com/krunpy0/todo-premium-ver/db"
 )
 
@@ -22,6 +24,7 @@ func GetUserTasks(userID string) ([]Task, error) {
 			&t.Difficulty, 
 			&t.Status, 
 			&t.CompletedAt,
+			&t.Due,
 		)
 		if err != nil {
 			return nil, err
@@ -32,4 +35,14 @@ func GetUserTasks(userID string) ([]Task, error) {
 		return nil, err
 	}
 	return tasks, nil
+}
+
+func CreateTask(userID string, title string, difficulty string, due *time.Time) (string, error) {
+	var id string
+
+	if err := db.DB.QueryRow(`INSERT INTO tasks (user_id, title, date, difficulty, due)
+	VALUES ($1, $2, NOW(), $3, $4) RETURNING id`, userID, title, difficulty, due).Scan(&id); err != nil {
+		return "", err
+	}
+	return id, nil
 }
