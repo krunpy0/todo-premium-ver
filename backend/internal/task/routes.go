@@ -189,3 +189,29 @@ func FailTaskRoute(c *gin.Context) {
 		"err": "",
 	})
 }
+
+func CancelTaskRoute(c *gin.Context) {
+	taskID := c.Param("taskID")
+
+	userID, ex := c.Get("userID")
+	if !ex {
+		c.JSON(500, gin.H{
+			"data": "",
+			"err": "userID not found",
+		})
+		return
+	}
+	task, err := CancelTask(userID.(string), taskID)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"data": "",
+			"err": "task cannot be cancelled or not found",
+		})
+		fmt.Println(err)
+		return
+	}
+	c.JSON(200, gin.H{
+		"data": task,
+		"err": "",
+	})
+}

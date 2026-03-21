@@ -80,3 +80,14 @@ func FailTask(userID string, taskID string) (Task, error) {
 	return task, nil
 }
 
+func CancelTask(userID string, taskID string) (Task, error) {
+	var task = Task{}
+
+	if err := db.DB.QueryRow(`UPDATE tasks
+		SET status = 'pending', completed_at = NULL
+		WHERE id = $1 AND user_id = $2 AND (status = 'done' OR status = 'failed')
+		RETURNING *`, taskID, userID).Scan(&task.ID, &task.UserID, &task.Title, &task.Date, &task.Difficulty, &task.Status, &task.CompletedAt, &task.Due); err != nil {
+			return Task{}, err
+		}
+	return task, nil
+}
