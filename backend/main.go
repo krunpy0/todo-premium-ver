@@ -23,6 +23,16 @@ func main() {
 	defer db.DB.Close()
 
 	router := gin.Default()
+	api := router.Group("/api")
+	api.Use(auth.Auth)
+	{
+		api.GET("/protected", func (c *gin.Context) {
+			c.JSON(200, gin.H{
+				"data": "this route is protected",
+				"err": "",
+			})
+		})
+	}
 	router.POST("/register", auth.Register)
 	router.POST("/login", auth.Login)
 	router.GET("/", func(c *gin.Context) {
