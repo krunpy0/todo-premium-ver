@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -21,14 +23,16 @@ func Register (c *gin.Context) {
 			"data": "",
 			"error": "unexpected error",
 		})
+		fmt.Println(err)
 		return
 	}
 
-	if ex, err := user.QueryUserBool(userStruct.Username); err != nil {
+	if ex, err := user.QueryUserBool(userStruct.Username); err != nil && err != sql.ErrNoRows {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"data": "",
 			"error": "unexpected error",
 		})
+		fmt.Println(err)
 		return
 	} else if ex {
 		c.JSON(http.StatusConflict, gin.H{
@@ -41,28 +45,31 @@ func Register (c *gin.Context) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(userStruct.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(500, gin.H{"data": "", "error": "unexpected error"})
+		fmt.Println(err)
 		return
 	}
 
 	_, err = user.CreateUser(userStruct.Username, string(hashed))
 	if err != nil {
 		c.JSON(500, gin.H{"data": "", "error": "unexpected error"})
+		fmt.Println(err)
 		return
 	}
 
 	tokenStr, err := SignToken(userStruct.Username)
 	if err != nil {
     c.JSON(500, gin.H{"data": "", "error": "unexpected error"})
+		fmt.Println(err)
     return
 }
 
 	c.SetCookie("token", tokenStr, 3600 * 24 * 30, "/", "localhost", false, true)
 	c.JSON(http.StatusOK, gin.H{
-		"data": "login successful",
+		"data": "register successful, cookie set",
 		"error": "",
 	})
 }
-
+ 
 func comparePassword(password string, hashedPassword string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
@@ -95,6 +102,7 @@ func Login(c *gin.Context) {
 			"data": "",
 			"error": "unexpected error",
 		})
+		fmt.Println(err)
 		return
 	}
 	queriedUser, err := user.QueryUser(userStruct.Username)
@@ -103,6 +111,7 @@ func Login(c *gin.Context) {
 			"data": "",
 			"error": "unexpected error",
 		})	
+		fmt.Println(err)
 		return
 	}
 	if err := comparePassword(userStruct.Password, queriedUser.Password); err != nil {
@@ -110,6 +119,7 @@ func Login(c *gin.Context) {
 			"data": "",
 			"error": "invalid password",
 		})
+		
 		return
 	}
 	tokenStr, err := SignToken(userStruct.Username)
@@ -118,6 +128,7 @@ func Login(c *gin.Context) {
 			"data": "",
 			"error": "unexpected error",
 		})
+		fmt.Println(err)
 		return
 	}
 	c.SetCookie("token", tokenStr, 3600 * 24 * 30, "/", "localhost", false, true)
@@ -125,5 +136,5 @@ func Login(c *gin.Context) {
 		"data": "login successful",
 		"error": "",
 	})
-	return
+
 }

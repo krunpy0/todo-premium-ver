@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/krunpy0/todo-premium-ver/db"
+	"github.com/krunpy0/todo-premium-ver/internal/auth"
 )
 
 func main() {
@@ -22,6 +23,8 @@ func main() {
 	defer db.DB.Close()
 
 	router := gin.Default()
+	router.POST("/register", auth.Register)
+	router.POST("/login", auth.Login)
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello, World!",
