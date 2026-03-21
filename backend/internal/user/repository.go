@@ -37,3 +37,15 @@ func CreateUser(username string, hashedPassword string ) (User, error) {
 	}
 	return user, nil
 }
+
+
+func UpdateUserXP(userID string, xpAmount int) (int, error) {
+	var xp int
+	if err := db.DB.QueryRow(`
+		UPDATE users
+		SET xp = xp + $1, updated_at = NOW()
+		WHERE id = $2 RETURNING xp;`, xpAmount, userID).Scan(&xp); err != nil {
+		return 0, err
+	}
+	return xp, nil
+}

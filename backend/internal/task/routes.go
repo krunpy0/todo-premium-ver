@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/krunpy0/todo-premium-ver/internal/user"
 )
 
 func GetTasksRoute(c *gin.Context) {
@@ -129,7 +130,7 @@ func CompleteTaskRoute(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"data": "",
-			"err": "task already completed or not found",
+			"err": "task already completed, failed or not found",
 		})
 		fmt.Println(err)
 		return
@@ -145,7 +146,7 @@ func CompleteTaskRoute(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
-	updatedXP, err := updateUserXP(userID.(string), xpAmount); if err != nil {
+	updatedXP, err := user.UpdateUserXP(userID.(string), xpAmount); if err != nil {
 		c.JSON(500, gin.H{
 			"data": "",
 			"err": "unexpected server error",
@@ -153,13 +154,38 @@ func CompleteTaskRoute(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(updatedXP)
-	fmt.Println(task)
+
 	c.JSON(200, gin.H{
 		"data": gin.H{
 			"updatedXP": updatedXP,
 			"updatedTask": task,
 		},
+		"err": "",
+	})
+}
+
+func FailTaskRoute(c *gin.Context) {
+	taskID := c.Param("taskID")
+
+	userID, ex := c.Get("userID")
+	if !ex {
+		c.JSON(500, gin.H{
+			"data": "",
+			"err": "userID not found",
+		})
+		return
+	}
+	task, err := FailTask(userID.(string), taskID)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"data": "",
+			"err": "task already completed, failed or not found",
+		})
+		fmt.Println(err)
+		return
+	}
+	c.JSON(200, gin.H{
+		"data": task,
 		"err": "",
 	})
 }

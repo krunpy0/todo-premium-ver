@@ -37,6 +37,7 @@ func main() {
 		api.GET("/tasks/:taskID",task.GetTaskByIDRoute)
 		api.POST("/tasks", task.CreateTaskRoute)
 		api.POST("/tasks/:taskID/complete", task.CompleteTaskRoute)
+		api.POST("/tasks/:taskID/fail", task.FailTaskRoute)
 	}
 	router.POST("/register", auth.Register)
 	router.POST("/login", auth.Login)
