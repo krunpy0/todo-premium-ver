@@ -37,6 +37,17 @@ func GetUserTasks(userID string) ([]Task, error) {
 	return tasks, nil
 }
 
+func GetTaskById(taskID string, userID string) (Task, error) {
+	var task = Task{}
+	err := db.DB.QueryRow(`SELECT * FROM tasks WHERE id=$1 AND user_id=$2`, taskID, userID).Scan(&task.ID, &task.UserID, &task.Title, &task.Date, &task.Difficulty, &task.Status, &task.CompletedAt, &task.Due)
+	if err != nil {
+		return Task{}, err
+	}
+	return task, nil
+}
+
+
+
 func CreateTask(userID string, title string, difficulty string, due *time.Time) (string, error) {
 	var id string
 
@@ -46,3 +57,4 @@ func CreateTask(userID string, title string, difficulty string, due *time.Time) 
 	}
 	return id, nil
 }
+
