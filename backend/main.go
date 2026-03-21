@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/krunpy0/todo-premium-ver/db"
 	"github.com/krunpy0/todo-premium-ver/internal/auth"
+	"github.com/krunpy0/todo-premium-ver/internal/task"
 )
 
 func main() {
@@ -32,6 +33,7 @@ func main() {
 				"err": "",
 			})
 		})
+		api.GET("/tasks",task.GetTasksRoute) 
 	}
 	router.POST("/register", auth.Register)
 	router.POST("/login", auth.Login)

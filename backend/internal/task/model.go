@@ -11,5 +11,5 @@ type Task struct {
 	Date        time.Time  `json:"date"`
 	Difficulty  string     `json:"difficulty"`// easy / medium / hard — влияет на награду
 	Status      string `json:"status"`// pending / done / failed
-	CompletedAt time.Time	`json:"completed_at"`
+	CompletedAt *time.Time	`json:"completed_at"`
 }
