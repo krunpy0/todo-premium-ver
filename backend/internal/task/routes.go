@@ -98,5 +98,68 @@ func CreateTaskRoute(c *gin.Context) {
 		"data": taskID,
 		"err": "",
 	})
+}
 
+func xpByDifficulty(difficulty string) (int, error) {
+	switch difficulty {
+	case "easy":
+			return 20, nil
+	case "medium":
+			return 40, nil
+	case "hard":
+			return 50, nil
+	default:
+			return 0, fmt.Errorf("unknown difficulty: %s", difficulty)
+	}
+}
+
+func CompleteTaskRoute(c *gin.Context) {
+	taskID := c.Param("taskID")
+
+	userID, ex := c.Get("userID")
+	if !ex {
+		c.JSON(500, gin.H{
+			"data": "",
+			"err": "userID not found",
+		})
+		return
+	}
+
+	task, err := CompleteTask(userID.(string), taskID)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"data": "",
+			"err": "task already completed or not found",
+		})
+		fmt.Println(err)
+		return
+	}
+
+	xpAmount, err := xpByDifficulty(task.Difficulty)
+
+	if err != nil {
+		c.JSON(500, gin.H{
+			"data": "",
+			"err": "unexpected server error",
+		})
+		fmt.Println(err)
+		return
+	}
+	updatedXP, err := updateUserXP(userID.(string), xpAmount); if err != nil {
+		c.JSON(500, gin.H{
+			"data": "",
+			"err": "unexpected server error",
+		})
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(updatedXP)
+	fmt.Println(task)
+	c.JSON(200, gin.H{
+		"data": gin.H{
+			"updatedXP": updatedXP,
+			"updatedTask": task,
+		},
+		"err": "",
+	})
 }

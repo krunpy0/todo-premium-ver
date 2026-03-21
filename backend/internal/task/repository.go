@@ -46,8 +46,6 @@ func GetTaskById(taskID string, userID string) (Task, error) {
 	return task, nil
 }
 
-
-
 func CreateTask(userID string, title string, difficulty string, due *time.Time) (string, error) {
 	var id string
 
@@ -58,3 +56,25 @@ func CreateTask(userID string, title string, difficulty string, due *time.Time) 
 	return id, nil
 }
 
+func CompleteTask(userID string, taskID string) (Task, error) {
+	var task = Task{}
+
+	if err := db.DB.QueryRow(`UPDATE tasks
+		SET status = 'done', completed_at = NOW()
+		WHERE id = $1 AND user_id = $2 AND status != 'done'
+		RETURNING *`, taskID, userID).Scan(&task.ID, &task.UserID, &task.Title, &task.Date, &task.Difficulty, &task.Status, &task.CompletedAt, &task.Due); err != nil {
+			return Task{}, err
+		}
+	return task, nil
+}
+
+func updateUserXP(userID string, xpAmount int) (int, error) {
+	var xp int
+	if err := db.DB.QueryRow(`
+		UPDATE users
+		SET xp = xp + $1, updated_at = NOW()
+		WHERE id = $2 RETURNING xp;`, xpAmount, userID).Scan(&xp); err != nil {
+		return 0, err
+	}
+	return xp, nil
+}
