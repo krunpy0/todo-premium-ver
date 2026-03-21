@@ -49,14 +49,14 @@ func Register (c *gin.Context) {
 		return
 	}
 
-	_, err = user.CreateUser(userStruct.Username, string(hashed))
+	createdUser, err := user.CreateUser(userStruct.Username, string(hashed))
 	if err != nil {
 		c.JSON(500, gin.H{"data": "", "error": "unexpected error"})
 		fmt.Println(err)
 		return
 	}
 
-	tokenStr, err := SignToken(userStruct.Username)
+	tokenStr, err := SignToken(createdUser.ID)
 	if err != nil {
     c.JSON(500, gin.H{"data": "", "error": "unexpected error"})
 		fmt.Println(err)
@@ -78,11 +78,11 @@ func comparePassword(password string, hashedPassword string) error {
 	return nil
 }
 
-func SignToken(username string) (string, error) {
+func SignToken(userID string) (string, error) {
 
 	claims:= &jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * 30 * time.Hour)),
-		Subject: username,
+		Subject: userID,
 		IssuedAt: jwt.NewNumericDate(time.Now()),
 		NotBefore: jwt.NewNumericDate(time.Now()),
 	}
@@ -104,7 +104,7 @@ func Login(c *gin.Context) {
 		})
 		fmt.Println(err)
 		return
-	}
+	} 
 	queriedUser, err := user.QueryUser(userStruct.Username)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -122,7 +122,7 @@ func Login(c *gin.Context) {
 		
 		return
 	}
-	tokenStr, err := SignToken(userStruct.Username)
+	tokenStr, err := SignToken(queriedUser.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"data": "",

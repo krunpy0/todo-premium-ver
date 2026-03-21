@@ -6,7 +6,7 @@ import (
 
 func QueryUserBool(username string) (bool, error) {
 	var exists bool
-	err := db.DB.QueryRow(`SELECT 1 WHERE EXISTS (SELECT 1 FROM users WHERE username=$1)`, username).Scan(&exists)
+	err := db.DB.QueryRow(`SELECT EXISTS (SELECT 1 FROM users WHERE username=$1)`, username).Scan(&exists)
 	if err != nil {
 		return false, err
 	}
@@ -17,9 +17,9 @@ func QueryUserBool(username string) (bool, error) {
 	}
 }
 
-func QueryUser(username string) (User, error) {
+func QueryUser(username string) (User, error) {	
 	var user = User{}
-	err := db.DB.QueryRow(`SELECT username, password FROM users WHERE username=$1`, username).Scan(&user.Username, &user.Password)
+	err := db.DB.QueryRow(`SELECT id, username, password FROM users WHERE username=$1`, username).Scan(&user.ID,&user.Username, &user.Password)
 	if err != nil {
 		return user, err
 	}
@@ -30,9 +30,9 @@ func CreateUser(username string, hashedPassword string ) (User, error) {
 	var user = User{}
 	query := `
 	INSERT INTO users (username, password)
-	VALUES ($1, $2) RETURNING username, password
+	VALUES ($1, $2) RETURNING id, username, password
 	`
-	err := db.DB.QueryRow(query, username, hashedPassword).Scan(&user.Username, &user.Password); if err != nil {
+	err := db.DB.QueryRow(query, username, hashedPassword).Scan(&user.ID, &user.Username, &user.Password); if err != nil {
 		return User{}, err
 	}
 	return user, nil
