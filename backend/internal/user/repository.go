@@ -38,7 +38,6 @@ func CreateUser(username string, hashedPassword string ) (User, error) {
 	return user, nil
 }
 
-
 func UpdateUserXP(userID string, xpAmount int) (int, error) {
 	var xp int
 	if err := db.DB.QueryRow(`
@@ -49,3 +48,4 @@ func UpdateUserXP(userID string, xpAmount int) (int, error) {
 	}
 	return xp, nil
 }
+

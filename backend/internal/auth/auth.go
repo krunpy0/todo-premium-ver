@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/krunpy0/todo-premium-ver/internal/streak"
 	"github.com/krunpy0/todo-premium-ver/internal/user"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -50,6 +51,13 @@ func Register (c *gin.Context) {
 	}
 
 	createdUser, err := user.CreateUser(userStruct.Username, string(hashed))
+	if err != nil {
+		c.JSON(500, gin.H{"data": "", "error": "unexpected error"})
+		fmt.Println(err)
+		return
+	}
+
+	err = streak.CreateStreak(createdUser.ID)
 	if err != nil {
 		c.JSON(500, gin.H{"data": "", "error": "unexpected error"})
 		fmt.Println(err)
