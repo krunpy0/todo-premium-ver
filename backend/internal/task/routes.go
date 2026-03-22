@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/krunpy0/todo-premium-ver/internal/streak"
 	"github.com/krunpy0/todo-premium-ver/internal/user"
 )
 
@@ -135,6 +136,8 @@ func CompleteTaskRoute(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
+
+	err = streak.UpdateStreak(userID.(string))
 
 	xpAmount, err := xpByDifficulty(task.Difficulty)
 

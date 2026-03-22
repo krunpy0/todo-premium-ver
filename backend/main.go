@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/krunpy0/todo-premium-ver/db"
 	"github.com/krunpy0/todo-premium-ver/internal/auth"
+	"github.com/krunpy0/todo-premium-ver/internal/streak"
 	"github.com/krunpy0/todo-premium-ver/internal/task"
 )
 
@@ -35,6 +36,7 @@ func main() {
 		})
 		api.GET("/tasks",task.GetTasksRoute) 
 		api.GET("/tasks/:taskID",task.GetTaskByIDRoute)
+		api.GET("/streak", streak.QueryStreakRoute)
 		api.POST("/tasks", task.CreateTaskRoute)
 		api.POST("/tasks/:taskID/complete", task.CompleteTaskRoute)
 		api.POST("/tasks/:taskID/fail", task.FailTaskRoute)
