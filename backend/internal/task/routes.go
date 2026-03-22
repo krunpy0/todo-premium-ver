@@ -213,8 +213,21 @@ func CancelTaskRoute(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
+	xpAmount, err := xpByDifficulty(task.Difficulty)
+	updatedXP, err := user.UpdateUserXP(userID.(string), -xpAmount); if err != nil {
+		c.JSON(500, gin.H{
+			"data": "",
+			"err": "unexpected server error",
+		})
+		fmt.Println(err)
+		return
+	}
+
 	c.JSON(200, gin.H{
-		"data": task,
+		"data": gin.H{
+			"task": task,
+			"updatedXP": updatedXP,
+		},
 		"err": "",
 	})
 }
