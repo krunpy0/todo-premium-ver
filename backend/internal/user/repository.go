@@ -1,8 +1,19 @@
 package user
 
 import (
+	"time"
+
 	"github.com/krunpy0/todo-premium-ver/db"
 )
+
+type UserResponse struct {
+	ID        string    `json:"id"`
+	Username  string    `json:"username"`
+	CreatedAt time.Time `json:"created_at"`
+	XP        int       `json:"xp"`
+	Coins     int       `json:"coins"`
+	TimeZone  string    `json:"timezone"`
+}
 
 func QueryUserBool(username string) (bool, error) {
 	var exists bool
@@ -25,7 +36,14 @@ func QueryUser(username string) (User, error) {
 	}
 	return user, nil
 }
-
+func queryUserByID(id string) (UserResponse, error) {
+	var user = UserResponse{}
+	err := db.DB.QueryRow(`SELECT id, username, created_at, xp, coins, timezone FROM users WHERE id=$1`, id).Scan(&user.ID, &user.Username,&user.CreatedAt, &user.XP, &user.Coins, &user.TimeZone)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
 func CreateUser(username string, hashedPassword string ) (User, error) {
 	var user = User{}
 	query := `

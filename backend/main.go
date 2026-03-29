@@ -10,6 +10,7 @@ import (
 	"github.com/krunpy0/todo-premium-ver/internal/auth"
 	"github.com/krunpy0/todo-premium-ver/internal/streak"
 	"github.com/krunpy0/todo-premium-ver/internal/task"
+	"github.com/krunpy0/todo-premium-ver/internal/user"
 )
 
 func main() {
@@ -41,6 +42,7 @@ func main() {
 		api.POST("/tasks/:taskID/complete", task.CompleteTaskRoute)
 		api.POST("/tasks/:taskID/fail", task.FailTaskRoute)
 		api.POST("/tasks/:taskID/cancel", task.CancelTaskRoute)
+		api.GET("/me", user.QueryMe)
 	}
 	router.POST("/register", auth.Register)
 	router.POST("/login", auth.Login)
