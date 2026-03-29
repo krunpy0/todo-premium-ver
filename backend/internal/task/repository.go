@@ -17,12 +17,12 @@ func GetUserTasks(userID string) ([]Task, error) {
 	for rows.Next() {
 		var t = Task{}
 		err := rows.Scan(
-			&t.ID, 
-			&t.UserID, 
-			&t.Title, 
-			&t.Date, 
-			&t.Difficulty, 
-			&t.Status, 
+			&t.ID,
+			&t.UserID,
+			&t.Title,
+			&t.Date,
+			&t.Difficulty,
+			&t.Status,
 			&t.CompletedAt,
 			&t.Due,
 		)
@@ -63,8 +63,8 @@ func CompleteTask(userID string, taskID string) (Task, error) {
 		SET status = 'done', completed_at = NOW()
 		WHERE id = $1 AND user_id = $2 AND status != 'done'
 		RETURNING *`, taskID, userID).Scan(&task.ID, &task.UserID, &task.Title, &task.Date, &task.Difficulty, &task.Status, &task.CompletedAt, &task.Due); err != nil {
-			return Task{}, err
-		}
+		return Task{}, err
+	}
 	return task, nil
 }
 
@@ -75,8 +75,8 @@ func FailTask(userID string, taskID string) (Task, error) {
 		SET status = 'failed', completed_at = NOW()
 		WHERE id = $1 AND user_id = $2 AND status != 'failed' AND status != 'done' 
 		RETURNING *`, taskID, userID).Scan(&task.ID, &task.UserID, &task.Title, &task.Date, &task.Difficulty, &task.Status, &task.CompletedAt, &task.Due); err != nil {
-			return Task{}, err
-		}
+		return Task{}, err
+	}
 	return task, nil
 }
 
@@ -87,7 +87,7 @@ func CancelTask(userID string, taskID string) (Task, error) {
 		SET status = 'pending', completed_at = NULL
 		WHERE id = $1 AND user_id = $2 AND (status = 'done' OR status = 'failed')
 		RETURNING *`, taskID, userID).Scan(&task.ID, &task.UserID, &task.Title, &task.Date, &task.Difficulty, &task.Status, &task.CompletedAt, &task.Due); err != nil {
-			return Task{}, err
-		}
+		return Task{}, err
+	}
 	return task, nil
 }

@@ -12,9 +12,9 @@ import (
 func GetTasksRoute(c *gin.Context) {
 	val, ex := c.Get("userID")
 	if !ex {
-		c.JSON(500, gin.H{
+		c.JSON(404, gin.H{
 			"data": "",
-			"err": "userID not found",
+			"err":  "userID not found",
 		})
 		return
 	}
@@ -23,14 +23,14 @@ func GetTasksRoute(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"data": "",
-			"err": "unexpected server error",
+			"err":  "unexpected server error",
 		})
 		fmt.Println(err)
 		return
 	}
 	c.JSON(200, gin.H{
 		"data": userTasks,
-		"err": "",
+		"err":  "",
 	})
 }
 
@@ -39,9 +39,9 @@ func GetTaskByIDRoute(c *gin.Context) {
 
 	userID, ex := c.Get("userID")
 	if !ex {
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusNotFound, gin.H{
 			"data": "",
-			"err": "userID not found",
+			"err":  "userID not found",
 		})
 		return
 	}
@@ -49,23 +49,24 @@ func GetTaskByIDRoute(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"data": "",
-			"err": "unexpected server error",
+			"err":  "unexpected server error",
 		})
 		fmt.Println(err)
 		return
 	}
 	c.JSON(200, gin.H{
 		"data": task,
-		"err": "",
+		"err":  "",
 	})
 }
 
 func CreateTaskRoute(c *gin.Context) {
 	var task = Task{}
-	err := c.ShouldBindJSON(&task); if err != nil {
+	err := c.ShouldBindJSON(&task)
+	if err != nil {
 		c.JSON(500, gin.H{
 			"data": "",
-			"err": "unexpected server error",
+			"err":  "unexpected server error",
 		})
 		fmt.Println(err)
 		return
@@ -73,15 +74,15 @@ func CreateTaskRoute(c *gin.Context) {
 	if task.Difficulty != "easy" && task.Difficulty != "medium" && task.Difficulty != "hard" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"data": "",
-			"err":"invalid difficulty type. allowed: 'easy', 'medium', 'hard' ",
+			"err":  "invalid difficulty type. allowed: 'easy', 'medium', 'hard' ",
 		})
 		return
 	}
 	userID, ex := c.Get("userID")
 	if !ex {
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusNotFound, gin.H{
 			"data": "",
-			"err": "userID not found",
+			"err":  "userID not found",
 		})
 		return
 	}
@@ -90,28 +91,28 @@ func CreateTaskRoute(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, gin.H{
 			"data": "",
-			"err": "unexpected server error",
+			"err":  "unexpected server error",
 		})
 		fmt.Println(err)
-		return	
+		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"data": taskID,
-		"err": "",
+		"err":  "",
 	})
 }
 
 func xpByDifficulty(difficulty string) (int, error) {
 	switch difficulty {
 	case "easy":
-			return 20, nil
+		return 20, nil
 	case "medium":
-			return 40, nil
+		return 40, nil
 	case "hard":
-			return 50, nil
+		return 50, nil
 	default:
-			return 0, fmt.Errorf("unknown difficulty: %s", difficulty)
+		return 0, fmt.Errorf("unknown difficulty: %s", difficulty)
 	}
 }
 
@@ -120,39 +121,48 @@ func CompleteTaskRoute(c *gin.Context) {
 
 	userID, ex := c.Get("userID")
 	if !ex {
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusNotFound, gin.H{
 			"data": "",
-			"err": "userID not found",
+			"err":  "userID not found",
 		})
 		return
 	}
 
 	task, err := CompleteTask(userID.(string), taskID)
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"data": "",
-			"err": "task already completed, failed or not found",
+			"err":  "task already completed, failed or not found",
 		})
 		fmt.Println(err)
 		return
 	}
 
 	err = streak.UpdateStreak(userID.(string))
+	if err != nil {
+		c.JSON(500, gin.H{
+			"data": "",
+			"err":  "unexpected server error",
+		})
+		fmt.Println(err)
+		return
+	}
 
 	xpAmount, err := xpByDifficulty(task.Difficulty)
 
 	if err != nil {
 		c.JSON(500, gin.H{
 			"data": "",
-			"err": "unexpected server error",
+			"err":  "unexpected server error",
 		})
 		fmt.Println(err)
 		return
 	}
-	updatedXP, err := user.UpdateUserXP(userID.(string), xpAmount); if err != nil {
+	updatedXP, err := user.UpdateUserXP(userID.(string), xpAmount)
+	if err != nil {
 		c.JSON(500, gin.H{
 			"data": "",
-			"err": "unexpected server error",
+			"err":  "unexpected server error",
 		})
 		fmt.Println(err)
 		return
@@ -160,7 +170,7 @@ func CompleteTaskRoute(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"data": gin.H{
-			"updatedXP": updatedXP,
+			"updatedXP":   updatedXP,
 			"updatedTask": task,
 		},
 		"err": "",
@@ -172,24 +182,24 @@ func FailTaskRoute(c *gin.Context) {
 
 	userID, ex := c.Get("userID")
 	if !ex {
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusNotFound, gin.H{
 			"data": "",
-			"err": "userID not found",
+			"err":  "userID not found",
 		})
 		return
 	}
 	task, err := FailTask(userID.(string), taskID)
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"data": "",
-			"err": "task already completed, failed or not found",
+			"err":  "task already completed, failed or not found",
 		})
 		fmt.Println(err)
 		return
 	}
 	c.JSON(200, gin.H{
 		"data": task,
-		"err": "",
+		"err":  "",
 	})
 }
 
@@ -198,26 +208,46 @@ func CancelTaskRoute(c *gin.Context) {
 
 	userID, ex := c.Get("userID")
 	if !ex {
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusNotFound, gin.H{
 			"data": "",
-			"err": "userID not found",
+			"err":  "userID not found",
 		})
 		return
 	}
 	task, err := CancelTask(userID.(string), taskID)
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"data": "",
-			"err": "task cannot be cancelled or not found",
+			"err":  "task cannot be cancelled or not found",
 		})
 		fmt.Println(err)
 		return
 	}
 	xpAmount, err := xpByDifficulty(task.Difficulty)
-	updatedXP, err := user.UpdateUserXP(userID.(string), -xpAmount); if err != nil {
+	if err != nil {
 		c.JSON(500, gin.H{
 			"data": "",
-			"err": "unexpected server error",
+			"err":  "unexpected server error",
+		})
+		fmt.Println(err)
+		return
+	}
+
+	err = streak.RollbackStreakOnCancel(userID.(string))
+	if err != nil {
+		c.JSON(500, gin.H{
+			"data": "",
+			"err":  "unexpected server error",
+		})
+		fmt.Println(err)
+		return
+	}
+
+	updatedXP, err := user.UpdateUserXP(userID.(string), -xpAmount)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"data": "",
+			"err":  "unexpected server error",
 		})
 		fmt.Println(err)
 		return
@@ -225,7 +255,7 @@ func CancelTaskRoute(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"data": gin.H{
-			"task": task,
+			"task":      task,
 			"updatedXP": updatedXP,
 		},
 		"err": "",
