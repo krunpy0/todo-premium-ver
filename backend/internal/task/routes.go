@@ -116,6 +116,19 @@ func xpByDifficulty(difficulty string) (int, error) {
 	}
 }
 
+func coinsByDifficulty(difficulty string) (int, error) {
+	switch difficulty {
+	case "easy":
+		return 5, nil
+	case "medium":
+		return 10, nil
+	case "hard":
+		return 15, nil
+	default:
+		return 0, fmt.Errorf("unknown difficulty: %s", difficulty)
+	}
+}
+
 func CompleteTaskRoute(c *gin.Context) {
 	taskID := c.Param("taskID")
 
@@ -149,7 +162,7 @@ func CompleteTaskRoute(c *gin.Context) {
 	}
 
 	xpAmount, err := xpByDifficulty(task.Difficulty)
-
+	coinsAmount, err := coinsByDifficulty(task.Difficulty)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"data": "",
@@ -159,6 +172,7 @@ func CompleteTaskRoute(c *gin.Context) {
 		return
 	}
 	updatedXP, err := user.UpdateUserXP(userID.(string), xpAmount)
+	updatedCoins, err := user.UpdateUserCoins(userID.(string), coinsAmount)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"data": "",
@@ -170,8 +184,9 @@ func CompleteTaskRoute(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"data": gin.H{
-			"updatedXP":   updatedXP,
 			"updatedTask": task,
+			"updatedXP":   updatedXP,
+			"updatedCoins":updatedCoins,
 		},
 		"err": "",
 	})
@@ -224,6 +239,8 @@ func CancelTaskRoute(c *gin.Context) {
 		return
 	}
 	xpAmount, err := xpByDifficulty(task.Difficulty)
+	coinsAmount, err := coinsByDifficulty(task.Difficulty)
+
 	if err != nil {
 		c.JSON(500, gin.H{
 			"data": "",
@@ -244,6 +261,7 @@ func CancelTaskRoute(c *gin.Context) {
 	}
 
 	updatedXP, err := user.UpdateUserXP(userID.(string), -xpAmount)
+	updatedCoins, err := user.UpdateUserCoins(userID.(string), -coinsAmount)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"data": "",
@@ -257,6 +275,7 @@ func CancelTaskRoute(c *gin.Context) {
 		"data": gin.H{
 			"task":      task,
 			"updatedXP": updatedXP,
+			"updatedCoins":updatedCoins,
 		},
 		"err": "",
 	})

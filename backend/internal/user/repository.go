@@ -49,3 +49,14 @@ func UpdateUserXP(userID string, xpAmount int) (int, error) {
 	return xp, nil
 }
 
+func UpdateUserCoins(userID string, coinsAmount int) (int, error) {
+	var coins int
+	if err := db.DB.QueryRow(`
+		UPDATE users
+		SET coins = coins + $1, updated_at = NOW()
+		WHERE id = $2 RETURNING coins;`, coinsAmount, userID).Scan(&coins); err != nil {
+		return 0, err
+	}
+	return coins, nil
+}
+
