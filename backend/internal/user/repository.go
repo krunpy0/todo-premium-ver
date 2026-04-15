@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/krunpy0/todo-premium-ver/db"
+	"github.com/krunpy0/todo-premium-ver/internal/streak"
 )
 
 type UserResponse struct {
@@ -13,6 +14,7 @@ type UserResponse struct {
 	XP        int       `json:"xp"`
 	Coins     int       `json:"coins"`
 	TimeZone  string    `json:"timezone"`
+	Streak streak.Streak	`json:"streak"`
 }
 
 func QueryUserBool(username string) (bool, error) {
@@ -42,6 +44,11 @@ func queryUserByID(id string) (UserResponse, error) {
 	if err != nil {
 		return user, err
 	}
+	streak, err := streak.QueryStreak(id)
+	if err != nil {
+		return user, err
+	}
+	user.Streak = streak
 	return user, nil
 }
 func CreateUser(username string, hashedPassword string ) (User, error) {
